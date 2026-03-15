@@ -1,0 +1,39 @@
+# MoQ default calibration config for Llama models
+model:
+  name: "meta-llama/Meta-Llama-3-8B"
+  adapter: "llama"
+
+quantization:
+  bits: 8
+  weight_bits: 8
+  activation_bits: 8
+  include_attn: true
+  include_mlp: true
+
+calibration:
+  strategy: "moq_end_to_end"   # moq_end_to_end | intermediate_mse | cosine | static
+  dataset: "wikitext2"
+  n_samples: 128
+  seq_len: 2048
+  seed: 42
+
+  # Candidate format set (auto-generated if not specified)
+  # candidates:
+  #   - {type: "int", bits: 8}
+  #   - {type: "int", bits: 8, use_aciq: true}
+  #   - {type: "fp", bits: 8, exp_bits: 4}   # E4M3
+  #   - {type: "fp", bits: 8, exp_bits: 5}   # E5M2
+
+evaluation:
+  ppl_dataset: "wikitext2"
+  ppl_seq_len: 2048
+  zero_shot_tasks:
+    - hellaswag
+    - piqa
+    - arc_easy
+  batch_size: 32
+
+output:
+  save_format_map: true
+  output_dir: "./results/llama_moq"
+  log_level: "INFO"

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "moq"
+version = "0.1.0"
+description = "MoQ: Mixture-of-format Quantization for Communication-efficient AI Inference"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "MoQ Team"},
+]
+
+dependencies = [
+    "torch>=2.1.0",
+    "transformers>=4.36.0",
+    "datasets>=2.16.0",
+    "tqdm>=4.65.0",
+    "pyyaml>=6.0",
+    "pillow>=10.0.0",
+]
+
+[project.optional-dependencies]
+eval = [
+    "lm-eval>=0.4.0",
+]
+baselines = [
+    "auto-gptq>=0.7.0",
+    "autoawq>=0.2.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["moq*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"

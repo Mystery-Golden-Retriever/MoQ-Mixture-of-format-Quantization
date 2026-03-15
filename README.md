@@ -1,0 +1,297 @@
+# MoQ: Mixture-of-Format Quantization
+
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![PyTorch 2.1+](https://img.shields.io/badge/pytorch-2.1%2B-ee4c2c.svg)](https://pytorch.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+A production-grade, extensible PyTorch framework implementing **Mixture-of-Format Activation Quantization** for communication-efficient AI inference, based on the paper:
+
+> **MoQ: Mixture-of-format Activation Quantization for Communication-efficient AI Inference System**
+> *OpenReview, 2024* — [Paper](https://openreview.net/pdf?id=MDfr3Eos44)
+
+---
+
+## 📖 Paper Overview
+
+### The Problem
+
+Modern AI inference systems distribute Transformer layers across multiple devices (GPUs/NPUs). The communication overhead of transferring activations between devices is a critical bottleneck. Quantizing activations reduces bandwidth, but **different layers exhibit different numerical distributions** — a single quantization format cannot optimally serve all layers.
+
+### The MoQ Solution
+
+MoQ introduces **inter-layer mixed-format quantization**: instead of applying one format (e.g., INT8 or FP8-E4M3) uniformly, MoQ assigns the **optimal format per layer** from a candidate set:
+
+```
+Layer 0  →  INT8          (uniform distribution, benefits from linear quantization)
+Layer 1  →  FP8-E4M3      (peaked distribution, benefits from log-scale precision)
+Layer 2  →  INT8 + ACIQ   (outliers present, benefits from analytical clipping)
+Layer 3  →  FP8-E5M2      (wide dynamic range, benefits from more exponent bits)
+...
+```
+
+### Key Findings
+
+1. **End-to-end output MSE** is the reliable indicator of per-layer quantization impact — intermediate-layer MSE does **not** correlate with final accuracy
+2. **Greedy per-layer selection** using end-to-end MSE achieves near-optimal results compared to exhaustive search
+3. **Small calibration sets** (64–640 samples) are sufficient for reliable format selection
+4. MoQ achieves **2–4× communication reduction** with <1% accuracy degradation on ViT, ResNet, Llama, and BERT
+
+### The Optimum Hit Rate (OHR) Metric
+
+The paper introduces OHR to evaluate format selection quality:
+
+```
+OHR = |{l : acc(π(l)) ≥ acc(π*(l)) - τ}| / L
+```
+
+Where `π(l)` is the predicted format, `π*(l)` is the globally optimal format, and `τ` is a tolerance margin (typically 1%).
+
+---
+
+## 🏗️ Architecture
+
+```
+moq/
+├── quantizers/        # Core quantization formats (INT, FP, ACIQ, Registry)
+├── transform/         # Model instrumentation (hooks, module replacement)
+│   └── adapters/      # Architecture-specific adapters (Llama, BERT, ViT)
+├── observer/          # Activation statistics collection (Welford online algorithm)
+├── calibration/       # MoQ calibration engine + search strategies
+├── evaluation/        # Perplexity, zero-shot, and OHR evaluation
+├── baselines/         # Third-party quantization baselines (GPTQ, AWQ, SmoothQuant)
+└── utils/             # Data loading utilities
+
+scripts/               # Entry-point scripts for calibration, evaluation, reproduction
+configs/               # YAML configuration files
+tests/                 # Comprehensive test suite (89 tests)
+```
+
+### Design Principles
+
+| Principle | Implementation |
+|---|---|
+| **Strategy Pattern** | `BaseQuantizer` → `INTQuantizer`, `FPQuantizer`; `BaseSearchStrategy` → 4 strategies |
+| **Open-Closed** | New formats via `@register_quantizer("name")` — zero changes to calibrator |
+| **Inference-Only** | No STE/QAT gradient support — clean, focused implementation |
+| **`torch.compile` Ready** | All quantizers use pure PyTorch tensor ops; module replacement for compiled graphs |
+| **Fake Quantization** | Simulates precision loss in FP32/BF16 for algorithm validation |
+
+---
+
+## 🚀 Quick Start
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/MoQ-Mixture-of-format-Quantization.git
+cd MoQ-Mixture-of-format-Quantization
+
+# Create conda environment
+conda create -n moq python=3.11 -y
+conda activate moq
+
+# Install MoQ and all dependencies
+pip install -e ".[dev]"
+```
+
+### Run Tests
+
+```bash
+pytest tests/ -v
+# 89 passed ✅
+```
+
+### Basic Usage
+
+```python
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+from moq.quantizers import INTQuantizer, FPQuantizer
+from moq.calibration import MoQCalibrator
+from moq.transform.hook_injector import HookQuantInjector
+from moq.transform.adapters import LlamaQuantAdapter
+
+# 1. Load model
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Meta-Llama-3-8B")
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B")
+model.eval()
+
+# 2. Get quantizable layer names
+layer_names = LlamaQuantAdapter.get_layer_names(model)
+
+# 3. Define candidate formats
+candidates = MoQCalibrator.default_candidates(bits=8)
+# Or manually:
+# candidates = [
+#     INTQuantizer(bits=8),
+#     INTQuantizer(bits=8, use_aciq=True),
+#     FPQuantizer(bits=8, exp_bits=4),   # E4M3
+#     FPQuantizer(bits=8, exp_bits=5),   # E5M2
+# ]
+
+# 4. Calibrate (greedy per-layer format selection)
+calibrator = MoQCalibrator(model, candidates)
+calib_data = [torch.randn(1, 2048) for _ in range(64)]  # Use real data in practice
+format_map = calibrator.calibrate(calib_data, layer_names)
+
+# 5. Apply quantization for inference
+with HookQuantInjector(model, format_map):
+    output = model(input_ids)
+```
+
+---
+
+## 🔧 Entry-Point Scripts
+
+### Calibration
+
+Run MoQ calibration from a YAML config:
+
+```bash
+python scripts/run_calibration.py --config configs/llama_moq.yaml
+```
+
+### Evaluation
+
+Evaluate a pre-calibrated format map:
+
+```bash
+python scripts/run_evaluation.py \
+    --model meta-llama/Meta-Llama-3-8B \
+    --format-map results/llama_moq/format_map.json \
+    --ppl-dataset wikitext2 \
+    --zero-shot hellaswag piqa arc_easy \
+    --compare-fp
+```
+
+### Paper Reproduction
+
+Reproduce the MoQ paper's OHR comparison:
+
+```bash
+python scripts/reproduce_paper.py \
+    --model google/vit-base-patch16-224 \
+    --bits 4 8 \
+    --calib-sizes 64 128 320 640 \
+    --output-dir results/paper_reproduction
+```
+
+---
+
+## 📦 Module Guide
+
+| Module | Description | README |
+|---|---|---|
+| [`moq/quantizers/`](moq/quantizers/) | INT/FP quantizers, ACIQ clipping, format registry | [README](moq/quantizers/README.md) |
+| [`moq/transform/`](moq/transform/) | Hook injection, module replacement, model adapters | [README](moq/transform/README.md) |
+| [`moq/observer/`](moq/observer/) | Online activation statistics (Welford algorithm) | [README](moq/observer/README.md) |
+| [`moq/calibration/`](moq/calibration/) | MoQ calibration engine and search strategies | [README](moq/calibration/README.md) |
+| [`moq/evaluation/`](moq/evaluation/) | Perplexity, zero-shot, OHR metric evaluation | [README](moq/evaluation/README.md) |
+| [`moq/baselines/`](moq/baselines/) | GPTQ, AWQ, SmoothQuant wrappers | [README](moq/baselines/README.md) |
+| [`moq/utils/`](moq/utils/) | Calibration data loaders (text + vision) | [README](moq/utils/README.md) |
+| [`scripts/`](scripts/) | CLI entry points for calibration, eval, reproduction | [README](scripts/README.md) |
+| [`tests/`](tests/) | 89 unit + integration tests | [README](tests/README.md) |
+
+---
+
+## 🧩 Extensibility
+
+### Adding a New Quantization Format
+
+Create a new file (e.g., `moq/quantizers/nf4_quantizer.py`):
+
+```python
+import torch
+from moq.quantizers.base import BaseQuantizer
+from moq.quantizers.registry import register_quantizer
+
+@register_quantizer("nf4")
+class NF4Quantizer(BaseQuantizer):
+    """NormalFloat4 quantizer (QLoRA-style)."""
+
+    def __init__(self, **kwargs):
+        super().__init__(bits=4, **kwargs)
+        # Pre-compute NF4 lookup table
+        self.nf4_table = torch.tensor([...])  # 16 values
+
+    def quantize(self, x: torch.Tensor) -> torch.Tensor:
+        # Your quantization logic here
+        ...
+
+    def get_scale(self, x: torch.Tensor) -> torch.Tensor:
+        ...
+```
+
+That's it — zero modifications needed to the calibrator, evaluator, or any core infrastructure. The new format is automatically available via `get_quantizer("nf4")` and can be included in calibration candidate sets.
+
+### Adding a New Search Strategy
+
+```python
+from moq.calibration.search_strategies import BaseSearchStrategy
+
+class MyCustomStrategy(BaseSearchStrategy):
+    def select_format(self, layer_name, candidates, model, calib_data, reference_output, stats=None):
+        # Your format selection logic
+        ...
+        return best_quantizer, best_score
+```
+
+### Adding a New Model Adapter
+
+```python
+class GPT2QuantAdapter:
+    ATTN_PATTERNS = [
+        "transformer.h.{i}.attn.c_attn",
+        "transformer.h.{i}.attn.c_proj",
+    ]
+    MLP_PATTERNS = [
+        "transformer.h.{i}.mlp.c_fc",
+        "transformer.h.{i}.mlp.c_proj",
+    ]
+    # ... (see existing adapters for the full template)
+```
+
+---
+
+## 📊 Supported Formats
+
+| Format | Class | Bits | Description |
+|---|---|---|---|
+| INT | `INTQuantizer` | 2–16 | Uniform integer, symmetric/asymmetric, per-tensor/per-channel |
+| INT + ACIQ | `INTQuantizer(use_aciq=True)` | 2–16 | INT with analytical clipping (Gaussian/Laplacian) |
+| FP (generic) | `FPQuantizer` | 4–16 | Arbitrary exponent/mantissa split |
+| FP8-E4M3 | `E4M3Quantizer` | 8 | IEEE 754 FP8 — high precision, moderate range |
+| FP8-E5M2 | `E5M2Quantizer` | 8 | IEEE 754 FP8 — wider range, lower precision |
+| FP4-E2M1 | `FP4E2M1Quantizer` | 4 | 4-bit floating point |
+| FP4-E3M0 | `FP4E3M0Quantizer` | 4 | 4-bit powers-of-two only |
+
+---
+
+## 🏛️ Supported Architectures
+
+| Architecture | Adapter | Tested Models |
+|---|---|---|
+| **Llama** | `LlamaQuantAdapter` | Llama-2-7B, Llama-3-8B |
+| **BERT** | `BERTQuantAdapter` | bert-base-uncased, RoBERTa |
+| **ViT** | `ViTQuantAdapter` | vit-base-patch16-224, vit-large-patch16-224 |
+
+---
+
+## 📄 Citation
+
+```bibtex
+@inproceedings{moq2024,
+  title={MoQ: Mixture-of-format Activation Quantization for Communication-efficient AI Inference System},
+  booktitle={OpenReview},
+  year={2024},
+  url={https://openreview.net/pdf?id=MDfr3Eos44}
+}
+```
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License.

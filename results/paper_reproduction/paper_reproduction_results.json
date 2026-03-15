@@ -1,0 +1,32 @@
+{
+  "model": "google/vit-base-patch16-224",
+  "layers": 3,
+  "ohr_tolerance": 0.01,
+  "experiments": [
+    {
+      "bits": 8,
+      "strategies": {
+        "Static INT": {
+          "ohr": 0.6666666666666666,
+          "calib_size": 8
+        },
+        "Static FP (max exp)": {
+          "ohr": 0.6666666666666666,
+          "calib_size": 8
+        },
+        "Intermediate MSE": {
+          "ohr": 0.6666666666666666,
+          "calib_size": 8
+        },
+        "Cosine Distance": {
+          "ohr": 0.6666666666666666,
+          "calib_size": 8
+        },
+        "MoQ (n=8)": {
+          "ohr": 0.6666666666666666,
+          "calib_size": 8
+        }
+      }
+    }
+  ]
+}
