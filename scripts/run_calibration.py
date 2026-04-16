@@ -34,7 +34,12 @@ def main():
 
     # Resolve device
     if args.device == "auto":
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        elif torch.backends.mps.is_available():
+            device = torch.device("mps")
+        else:
+            device = torch.device("cpu")
     else:
         device = torch.device(args.device)
     logger.info("Using device: %s", device)
@@ -48,7 +53,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.bfloat16 if device.type == "cuda" else torch.float32,
+        torch_dtype=torch.bfloat16 if device.type in ("cuda", "mps") else torch.float32,
         device_map=device,
     )
     model.eval()
