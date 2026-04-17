@@ -1,0 +1,28 @@
+# MoQ Results directory
+results/
+
+# Python caching and environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.conda/
+
+# Build and IDE
+moq.egg-info/
+build/
+dist/
+.vscode/
+.idea/
+
+# Testing
+.pytest_cache/
+
+# OS specific
+.DS_Store
+moq.egg-info/PKG-INFO
+moq.egg-info/SOURCES.txt
