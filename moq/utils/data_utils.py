@@ -109,7 +109,7 @@ def load_calib_data_vision(
     from datasets import load_dataset
 
     if dataset_name == "imagenet":
-        dataset = load_dataset("ILSVRC/imagenet-1k", split="validation", streaming=True)
+        dataset = load_dataset("ILSVRC/imagenet-1k", split="validation", streaming=True, token=True)
     elif dataset_name == "cifar10":
         dataset = load_dataset("cifar10", split="test")
     elif dataset_name == "food101":
