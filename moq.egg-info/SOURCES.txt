@@ -12,6 +12,7 @@ moq/calibration/__init__.py
 moq/calibration/moq_calibrator.py
 moq/calibration/search_strategies.py
 moq/evaluation/__init__.py
+moq/evaluation/image_evaluator.py
 moq/evaluation/ohr_evaluator.py
 moq/evaluation/ppl_evaluator.py
 moq/evaluation/zero_shot_runner.py
@@ -36,3 +37,5 @@ tests/test_calibrator.py
 tests/test_evaluation.py
 tests/test_quantizers.py
 tests/test_transform.py
+tests/test_weight_calibrator.py
+tests/test_weight_quantizers.py

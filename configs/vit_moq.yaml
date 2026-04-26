@@ -24,3 +24,10 @@ output:
   save_format_map: true
   output_dir: "./results/vit_moq"
   log_level: "INFO"
+
+# Weight quantization (optional, disabled by default)
+weight_quantization:
+  enabled: false
+  bits: 8
+  strategy: "moq_end_to_end"
+  candidates: "hardware_default"

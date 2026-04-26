@@ -253,3 +253,32 @@ class FP4E3M0Quantizer(FPQuantizer):
 
     def __init__(self, channel_wise: bool = False, use_aciq: bool = False) -> None:
         super().__init__(bits=4, exp_bits=3, channel_wise=channel_wise, use_aciq=use_aciq)
+
+
+# ======================================================================
+# 6-bit FP convenience subclasses
+# ======================================================================
+
+@register_quantizer("fp6_e3m2")
+class FP6E3M2Quantizer(FPQuantizer):
+    """6-bit FP with 3 exponent, 2 mantissa bits.
+
+    Wider dynamic range variant of FP6.  Used in MXFP6 (OCP standard)
+    and supported natively on NVIDIA Blackwell.
+    """
+
+    def __init__(self, channel_wise: bool = False, use_aciq: bool = False) -> None:
+        super().__init__(bits=6, exp_bits=3, channel_wise=channel_wise, use_aciq=use_aciq)
+
+
+@register_quantizer("fp6_e2m3")
+class FP6E2M3Quantizer(FPQuantizer):
+    """6-bit FP with 2 exponent, 3 mantissa bits.
+
+    Higher precision variant of FP6 — generally recommended for
+    weight-only quantization because the per-block scale captures the
+    dynamic range, making extra mantissa bits more valuable.
+    """
+
+    def __init__(self, channel_wise: bool = False, use_aciq: bool = False) -> None:
+        super().__init__(bits=6, exp_bits=2, channel_wise=channel_wise, use_aciq=use_aciq)
