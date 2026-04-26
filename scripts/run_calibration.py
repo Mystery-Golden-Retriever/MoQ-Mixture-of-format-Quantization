@@ -26,6 +26,10 @@ def main():
     parser = argparse.ArgumentParser(description="MoQ Calibration")
     parser.add_argument("--config", type=str, required=True, help="YAML config path")
     parser.add_argument("--device", type=str, default="auto", help="Device (auto/cpu/cuda)")
+    parser.add_argument("--model", type=str, default=None, help="Override model name")
+    parser.add_argument("--bits", type=int, default=None, help="Override activation bits")
+    parser.add_argument("--output-dir", type=str, default=None, help="Override output directory")
+    parser.add_argument("--strategy", type=str, default=None, help="Override calibration strategy")
     args = parser.parse_args()
 
     # Load config
@@ -45,17 +49,30 @@ def main():
     logger.info("Using device: %s", device)
 
     # Load model and tokenizer
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-
-    model_name = cfg["model"]["name"]
+    model_name = args.model if args.model else cfg["model"]["name"]
     logger.info("Loading model: %s", model_name)
+    
+    is_vision = "vit" in model_name.lower() or "resnet" in model_name.lower()
+    
+    if is_vision:
+        from transformers import AutoModelForImageClassification, AutoImageProcessor
+        tokenizer = None
+        processor = AutoImageProcessor.from_pretrained(model_name)
+        model = AutoModelForImageClassification.from_pretrained(
+            model_name,
+            torch_dtype=torch.bfloat16 if device.type in ("cuda", "mps") else torch.float32,
+            device_map=device,
+        )
+    else:
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        processor = None
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.bfloat16 if device.type in ("cuda", "mps") else torch.float32,
+            device_map=device,
+        )
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        torch_dtype=torch.bfloat16 if device.type in ("cuda", "mps") else torch.float32,
-        device_map=device,
-    )
     model.eval()
 
     # Get layer names via adapter
@@ -79,21 +96,29 @@ def main():
     logger.info("Found %d quantizable layers", len(layer_names))
 
     # Load calibration data
-    from moq.utils.data_utils import load_calib_data_text
-
     calib_cfg = cfg["calibration"]
-    calib_data = load_calib_data_text(
-        dataset_name=calib_cfg.get("dataset", "wikitext2"),
-        tokenizer=tokenizer,
-        n_samples=calib_cfg.get("n_samples", 128),
-        seq_len=calib_cfg.get("seq_len", 2048),
-        seed=calib_cfg.get("seed", 42),
-    )
+    if is_vision:
+        from moq.utils.data_utils import load_calib_data_vision
+        calib_data = load_calib_data_vision(
+            dataset_name=calib_cfg.get("dataset", "imagenet"),
+            processor=processor,
+            n_samples=calib_cfg.get("n_samples", 128),
+            seed=calib_cfg.get("seed", 42),
+        )
+    else:
+        from moq.utils.data_utils import load_calib_data_text
+        calib_data = load_calib_data_text(
+            dataset_name=calib_cfg.get("dataset", "wikitext2"),
+            tokenizer=tokenizer,
+            n_samples=calib_cfg.get("n_samples", 128),
+            seq_len=calib_cfg.get("seq_len", 2048),
+            seed=calib_cfg.get("seed", 42),
+        )
 
     # Build candidates
     from moq.calibration.moq_calibrator import MoQCalibrator
 
-    bits = cfg["quantization"].get("activation_bits", 8)
+    bits = args.bits if args.bits is not None else cfg["quantization"].get("activation_bits", 8)
     candidates = MoQCalibrator.default_candidates(bits)
     logger.info("Using %d candidate formats for %d-bit", len(candidates), bits)
 
@@ -102,24 +127,32 @@ def main():
         MoQEndToEndStrategy,
         IntermediateMSEStrategy,
         CosineDistanceStrategy,
+        StaticFormatStrategy,
     )
 
-    strategy_name = calib_cfg.get("strategy", "moq_end_to_end")
-    strategy_map = {
-        "moq_end_to_end": MoQEndToEndStrategy,
-        "intermediate_mse": IntermediateMSEStrategy,
-        "cosine": CosineDistanceStrategy,
-    }
-    if strategy_name not in strategy_map:
-        raise ValueError(f"Unknown strategy: {strategy_name}")
-    strategy = strategy_map[strategy_name]()
+    strategy_name = args.strategy if args.strategy is not None else calib_cfg.get("strategy", "moq_end_to_end")
+    
+    if strategy_name == "static":
+        from moq.calibration.search_strategies import StaticFormatStrategy
+        from moq.quantizers.int_quantizer import INTQuantizer
+        strategy = StaticFormatStrategy(fixed_quantizer=INTQuantizer(bits=bits))
+    else:
+        strategy_map = {
+            "moq_end_to_end": MoQEndToEndStrategy,
+            "intermediate_mse": IntermediateMSEStrategy,
+            "cosine": CosineDistanceStrategy,
+        }
+        if strategy_name not in strategy_map:
+            raise ValueError(f"Unknown strategy: {strategy_name}")
+        strategy = strategy_map[strategy_name]()
 
     # Run calibration
     calibrator = MoQCalibrator(model, candidates, strategy=strategy, device=device)
     format_map = calibrator.calibrate(calib_data, layer_names)
 
     # Save results
-    output_dir = Path(cfg.get("output", {}).get("output_dir", "./results"))
+    out_path = args.output_dir if args.output_dir else cfg.get("output", {}).get("output_dir", "./results")
+    output_dir = Path(out_path)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Serialize format map
@@ -135,20 +168,30 @@ def main():
     if "evaluation" in cfg:
         eval_cfg = cfg["evaluation"]
 
-        # PPL
-        from moq.evaluation.ppl_evaluator import PPLEvaluator
         from moq.transform.hook_injector import HookQuantInjector
+        
+        results = {}
+        if is_vision:
+            from moq.evaluation.image_evaluator import ImageClassificationEvaluator
+            logger.info("Running Image Classification evaluation with MoQ format map…")
+            with HookQuantInjector(model, format_map):
+                evaluator = ImageClassificationEvaluator(model, processor, batch_size=eval_cfg.get("batch_size", 32))
+                acc = evaluator.evaluate(eval_cfg.get("image_dataset", "imagenet"), max_samples=500)
+            logger.info("Accuracy: %.4f", acc)
+            results["accuracy"] = acc
+        else:
+            from moq.evaluation.ppl_evaluator import PPLEvaluator
+            logger.info("Running PPL evaluation with MoQ format map…")
+            with HookQuantInjector(model, format_map):
+                evaluator = PPLEvaluator(
+                    model, tokenizer,
+                    seq_len=eval_cfg.get("ppl_seq_len", 2048),
+                )
+                ppl = evaluator.evaluate(eval_cfg.get("ppl_dataset", "wikitext2"))
+            logger.info("Perplexity: %.2f", ppl)
+            results["ppl"] = ppl
 
-        logger.info("Running PPL evaluation with MoQ format map…")
-        with HookQuantInjector(model, format_map):
-            evaluator = PPLEvaluator(
-                model, tokenizer,
-                seq_len=eval_cfg.get("ppl_seq_len", 2048),
-            )
-            ppl = evaluator.evaluate(eval_cfg.get("ppl_dataset", "wikitext2"))
-        logger.info("Perplexity: %.2f", ppl)
 
-        results = {"ppl": ppl}
         results_path = output_dir / "results.json"
         with open(results_path, "w") as f:
             json.dump(results, f, indent=2)

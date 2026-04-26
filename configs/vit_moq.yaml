@@ -1,0 +1,26 @@
+# MoQ default calibration config for ViT models
+model:
+  name: "google/vit-base-patch16-224"
+  adapter: "vit"
+
+quantization:
+  bits: 8
+  activation_bits: 8
+  include_attn: true
+  include_mlp: true
+
+calibration:
+  strategy: "moq_end_to_end"
+  dataset: "imagenet"
+  n_samples: 128
+  seed: 42
+
+evaluation:
+  image_dataset: "imagenet"
+  batch_size: 32
+  limit_batches: 50  # Limit evaluation to 50 batches for speed (optional)
+
+output:
+  save_format_map: true
+  output_dir: "./results/vit_moq"
+  log_level: "INFO"

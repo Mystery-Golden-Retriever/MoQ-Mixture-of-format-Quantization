@@ -70,6 +70,9 @@ def main():
                         default=["wikitext2"],
                         help="PPL datasets (wikitext2, c4, ptb)")
     parser.add_argument("--ppl-seq-len", type=int, default=2048)
+    parser.add_argument("--image-dataset", type=str, nargs="*",
+                        default=None,
+                        help="Image classification datasets (imagenet, cifar10)")
     parser.add_argument("--zero-shot", type=str, nargs="*",
                         default=None,
                         help="Zero-shot tasks (hellaswag, piqa, arc_easy, ...)")
@@ -92,16 +95,27 @@ def main():
         device = torch.device(args.device)
     logger.info("Device: %s", device)
 
-    # Load model
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-
     logger.info("Loading model: %s", args.model)
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model,
-        torch_dtype=torch.bfloat16 if device.type in ("cuda", "mps") else torch.float32,
-        device_map=device,
-    )
+    is_vision = "vit" in args.model.lower() or "resnet" in args.model.lower()
+    
+    if is_vision:
+        from transformers import AutoModelForImageClassification, AutoImageProcessor
+        processor = AutoImageProcessor.from_pretrained(args.model)
+        tokenizer = None
+        model = AutoModelForImageClassification.from_pretrained(
+            args.model,
+            torch_dtype=torch.bfloat16 if device.type in ("cuda", "mps") else torch.float32,
+            device_map=device,
+        )
+    else:
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        tokenizer = AutoTokenizer.from_pretrained(args.model)
+        processor = None
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model,
+            torch_dtype=torch.bfloat16 if device.type in ("cuda", "mps") else torch.float32,
+            device_map=device,
+        )
     model.eval()
 
     # Load format map
@@ -115,8 +129,28 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # ── Image Classification evaluation ────────────────────────────
+    if args.image_dataset and is_vision:
+        from moq.evaluation.image_evaluator import ImageClassificationEvaluator
+        from moq.transform.hook_injector import HookQuantInjector
+
+        for dataset_name in args.image_dataset:
+            logger.info("Image Classification on %s (quantized)…", dataset_name)
+            with HookQuantInjector(model, format_map):
+                evaluator = ImageClassificationEvaluator(model, processor, batch_size=args.batch_size)
+                acc_q = evaluator.evaluate(dataset_name)
+            results["quantized"][f"acc_{dataset_name}"] = acc_q
+            logger.info("  Quantized Accuracy (%s): %.4f", dataset_name, acc_q)
+
+            if args.compare_fp:
+                logger.info("Image Classification on %s (full precision)…", dataset_name)
+                evaluator = ImageClassificationEvaluator(model, processor, batch_size=args.batch_size)
+                acc_fp = evaluator.evaluate(dataset_name)
+                results["full_precision"][f"acc_{dataset_name}"] = acc_fp
+                logger.info("  Full-prec Accuracy (%s): %.4f", dataset_name, acc_fp)
+
     # ── Perplexity evaluation ──────────────────────────────────────
-    if args.ppl_dataset:
+    if args.ppl_dataset and not is_vision:
         from moq.evaluation.ppl_evaluator import PPLEvaluator
         from moq.transform.hook_injector import HookQuantInjector
 
@@ -136,7 +170,7 @@ def main():
                 logger.info("  Full-prec PPL (%s): %.2f", dataset_name, ppl_fp)
 
     # ── Zero-shot evaluation ───────────────────────────────────────
-    if args.zero_shot:
+    if args.zero_shot and not is_vision:
         from moq.evaluation.zero_shot_runner import ZeroShotRunner
         from moq.transform.hook_injector import HookQuantInjector
 
