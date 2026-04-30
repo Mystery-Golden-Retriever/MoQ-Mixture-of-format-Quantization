@@ -74,9 +74,7 @@ for BITS in 8 6 4; do
         --model ${MODEL} \
         --weight-format-map ${OUT_DIR}/weight_format_map.json \
         --ppl-dataset wikitext2 \
-        --zero-shot hellaswag piqa \
         --batch-size 16 \
-        --compare-fp \
         --output-dir ${EVAL_DIR}
 done
 
@@ -107,9 +105,7 @@ run_evaluation "${EVAL_DIR}" \
     --model ${MODEL} \
     --weight-format-map ${OUT_DIR}/weight_format_map.json \
     --ppl-dataset wikitext2 \
-    --zero-shot hellaswag piqa \
     --batch-size 16 \
-    --compare-fp \
     --output-dir ${EVAL_DIR}
 
 # D2: INT4+ACIQ static
@@ -128,9 +124,7 @@ run_evaluation "${EVAL_DIR}" \
     --model ${MODEL} \
     --weight-format-map ${OUT_DIR}/weight_format_map.json \
     --ppl-dataset wikitext2 \
-    --zero-shot hellaswag piqa \
     --batch-size 16 \
-    --compare-fp \
     --output-dir ${EVAL_DIR}
 
 # D3: MXFP4 static
@@ -149,9 +143,7 @@ run_evaluation "${EVAL_DIR}" \
     --model ${MODEL} \
     --weight-format-map ${OUT_DIR}/weight_format_map.json \
     --ppl-dataset wikitext2 \
-    --zero-shot hellaswag piqa \
     --batch-size 16 \
-    --compare-fp \
     --output-dir ${EVAL_DIR}
 
 # D4: NVFP4 static
@@ -170,9 +162,7 @@ run_evaluation "${EVAL_DIR}" \
     --model ${MODEL} \
     --weight-format-map ${OUT_DIR}/weight_format_map.json \
     --ppl-dataset wikitext2 \
-    --zero-shot hellaswag piqa \
     --batch-size 16 \
-    --compare-fp \
     --output-dir ${EVAL_DIR}
 
 # D5: NF4 static
@@ -191,9 +181,7 @@ run_evaluation "${EVAL_DIR}" \
     --model ${MODEL} \
     --weight-format-map ${OUT_DIR}/weight_format_map.json \
     --ppl-dataset wikitext2 \
-    --zero-shot hellaswag piqa \
     --batch-size 16 \
-    --compare-fp \
     --output-dir ${EVAL_DIR}
 
 # ----- Group C: Cosine ablation (C3, C6) -----
@@ -216,9 +204,7 @@ for BITS in 8 4; do
         --model ${MODEL} \
         --weight-format-map ${OUT_DIR}/weight_format_map.json \
         --ppl-dataset wikitext2 \
-        --zero-shot hellaswag piqa \
         --batch-size 16 \
-        --compare-fp \
         --output-dir ${EVAL_DIR}
 done
 
@@ -248,9 +234,7 @@ for BITS in 8 6 4; do
         --model ${MODEL} \
         --weight-format-map ${OUT_DIR}/weight_format_map.json \
         --ppl-dataset wikitext2 \
-        --zero-shot hellaswag piqa \
         --batch-size 16 \
-        --compare-fp \
         --output-dir ${EVAL_DIR}
 done
 
@@ -274,9 +258,7 @@ if [ -f "results/${MODEL_SHORT}_moq_8bit/format_map.json" ] && [ -f "results/${M
         --format-map results/${MODEL_SHORT}_moq_8bit/format_map.json \
         --weight-format-map results/${MODEL_SHORT}_wt_imse_8bit/weight_format_map.json \
         --ppl-dataset wikitext2 \
-        --zero-shot hellaswag piqa \
         --batch-size 16 \
-        --compare-fp \
         --output-dir ${EVAL_DIR}
 else
     echo -e "${YELLOW}>> Skipping B1: missing prerequisite format maps${NC}"
@@ -291,9 +273,7 @@ if [ -f "results/${MODEL_SHORT}_moq_8bit/format_map.json" ] && [ -f "results/${M
         --format-map results/${MODEL_SHORT}_moq_8bit/format_map.json \
         --weight-format-map results/${MODEL_SHORT}_wt_imse_4bit/weight_format_map.json \
         --ppl-dataset wikitext2 \
-        --zero-shot hellaswag piqa \
         --batch-size 16 \
-        --compare-fp \
         --output-dir ${EVAL_DIR}
 else
     echo -e "${YELLOW}>> Skipping B2: missing prerequisite format maps${NC}"
@@ -308,9 +288,7 @@ if [ -f "results/${MODEL_SHORT}_moq_6bit/format_map.json" ] && [ -f "results/${M
         --format-map results/${MODEL_SHORT}_moq_6bit/format_map.json \
         --weight-format-map results/${MODEL_SHORT}_wt_imse_8bit/weight_format_map.json \
         --ppl-dataset wikitext2 \
-        --zero-shot hellaswag piqa \
         --batch-size 16 \
-        --compare-fp \
         --output-dir ${EVAL_DIR}
 else
     echo -e "${YELLOW}>> Skipping B3: missing prerequisite format maps${NC}"
@@ -325,9 +303,7 @@ if [ -f "results/${MODEL_SHORT}_moq_6bit/format_map.json" ] && [ -f "results/${M
         --format-map results/${MODEL_SHORT}_moq_6bit/format_map.json \
         --weight-format-map results/${MODEL_SHORT}_wt_imse_6bit/weight_format_map.json \
         --ppl-dataset wikitext2 \
-        --zero-shot hellaswag piqa \
         --batch-size 16 \
-        --compare-fp \
         --output-dir ${EVAL_DIR}
 else
     echo -e "${YELLOW}>> Skipping B4: missing prerequisite format maps${NC}"
