@@ -1,0 +1,82 @@
+{
+  "model": "google/vit-base-patch16-224",
+  "layers": 72,
+  "ohr_tolerance": 0.01,
+  "experiments": [
+    {
+      "bits": 4,
+      "strategies": {
+        "Static INT": {
+          "ohr": 0.6527777777777778,
+          "calib_size": 128
+        },
+        "Static FP (max exp)": {
+          "ohr": 0.5833333333333334,
+          "calib_size": 128
+        },
+        "Intermediate MSE": {
+          "ohr": 0.7777777777777778,
+          "calib_size": 128
+        },
+        "Cosine Distance": {
+          "ohr": 0.7777777777777778,
+          "calib_size": 128
+        },
+        "MoQ (n=128)": {
+          "ohr": 0.8472222222222222,
+          "calib_size": 128
+        }
+      }
+    },
+    {
+      "bits": 6,
+      "strategies": {
+        "Static INT": {
+          "ohr": 0.8611111111111112,
+          "calib_size": 128
+        },
+        "Static FP (max exp)": {
+          "ohr": 0.875,
+          "calib_size": 128
+        },
+        "Intermediate MSE": {
+          "ohr": 0.875,
+          "calib_size": 128
+        },
+        "Cosine Distance": {
+          "ohr": 0.8611111111111112,
+          "calib_size": 128
+        },
+        "MoQ (n=128)": {
+          "ohr": 0.875,
+          "calib_size": 128
+        }
+      }
+    },
+    {
+      "bits": 8,
+      "strategies": {
+        "Static INT": {
+          "ohr": 0.9166666666666666,
+          "calib_size": 128
+        },
+        "Static FP (max exp)": {
+          "ohr": 0.9305555555555556,
+          "calib_size": 128
+        },
+        "Intermediate MSE": {
+          "ohr": 0.9166666666666666,
+          "calib_size": 128
+        },
+        "Cosine Distance": {
+          "ohr": 0.9166666666666666,
+          "calib_size": 128
+        },
+        "MoQ (n=128)": {
+          "ohr": 0.9166666666666666,
+          "calib_size": 128
+        }
+      }
+    }
+  ]
+}

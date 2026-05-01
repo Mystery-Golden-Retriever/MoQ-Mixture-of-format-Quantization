@@ -1,5 +1,11 @@
 # MoQ Results directory
-results/
+# Ignore everything by default to prevent large model files from being tracked
+results/*
+# Un-ignore subdirectories so Git can traverse them
+!results/*/
+# Un-ignore JSON experiment and format map results so they can be synced across machines
+!results/**/*.json
+!results/*.json
 
 # Python caching and environments
 __pycache__/
