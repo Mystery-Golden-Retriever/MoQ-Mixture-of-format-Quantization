@@ -2,156 +2,343 @@
   "Qwen2.5-1.5B_combined_a6_w6": {
     "ppl": 752.1593627929688,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_combined_a6_w8": {
     "ppl": 44.94813537597656,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_combined_a8_w4": {
     "ppl": 10.367627143859863,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_combined_a8_w8": {
     "ppl": 9.772940635681152,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_intermediate_mse_6bit": {
     "ppl": 18488.802734375,
     "hellaswag": 0.2634933280223063,
-    "piqa": 0.5424374319912949
+    "piqa": 0.5424374319912949,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_intermediate_mse_8bit": {
     "ppl": 9.68856430053711,
     "hellaswag": 0.49830711013742285,
-    "piqa": 0.7551686615886833
+    "piqa": 0.7551686615886833,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_moq_2bit": {
     "ppl": 5805343.5,
     "hellaswag": 0.2538338976299542,
-    "piqa": 0.5331882480957563
+    "piqa": 0.5331882480957563,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_moq_3bit": {
     "ppl": 382094.8125,
     "hellaswag": 0.2559251145190201,
-    "piqa": 0.5190424374319913
+    "piqa": 0.5190424374319913,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_moq_4bit": {
     "ppl": 363267.4375,
     "hellaswag": 0.25253933479386576,
-    "piqa": 0.5277475516866159
+    "piqa": 0.5277475516866159,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_moq_6bit": {
     "ppl": 44.347774505615234,
     "hellaswag": 0.4113722366062537,
-    "piqa": 0.6789989118607181
+    "piqa": 0.6789989118607181,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_moq_8bit": {
     "ppl": 9.647231101989746,
     "hellaswag": 0.49950209121688904,
-    "piqa": 0.7562568008705114
+    "piqa": 0.7562568008705114,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_static_6bit": {
     "ppl": 11252.0244140625,
     "hellaswag": 0.26160127464648475,
-    "piqa": 0.5190424374319913
+    "piqa": 0.5190424374319913,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_static_8bit": {
     "ppl": 20.380977630615234,
     "hellaswag": 0.40599482174865564,
-    "piqa": 0.6561479869423286
+    "piqa": 0.6561479869423286,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_cosine_4bit": {
     "ppl": 9.92829704284668,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_cosine_8bit": {
     "ppl": 9.354894638061523,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_e2e_4bit": {
     "ppl": 9.916631698608398,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_e2e_6bit": {
     "ppl": 9.495260238647461,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_e2e_8bit": {
     "ppl": 9.286833763122559,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_imse_4bit": {
     "ppl": 9.92829704284668,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_imse_6bit": {
     "ppl": 40.89383316040039,
     "hellaswag": 0.41196972714598684,
-    "piqa": 0.7105549510337323
+    "piqa": 0.7105549510337323,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_imse_8bit": {
     "ppl": 9.354894638061523,
     "hellaswag": 0.5048795060744872,
-    "piqa": 0.7589771490750816
+    "piqa": 0.7589771490750816,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_static_int4": {
     "ppl": 10087410.0,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_static_int4_aciq": {
     "ppl": 721.8690795898438,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_static_mxfp4": {
     "ppl": 12.002927780151367,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_static_nf4": {
     "ppl": 9.92829704284668,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
   },
   "Qwen2.5-1.5B_wt_static_nvfp4": {
     "ppl": 10.432446479797363,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": null
+  },
+  "vit_combined_a2_w4": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.05884
+  },
+  "vit_combined_a2_w6": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.06374
+  },
+  "vit_combined_a2_w8": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.07172
+  },
+  "vit_combined_a3_w4": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.68438
+  },
+  "vit_combined_a3_w6": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.6884
+  },
+  "vit_combined_a3_w8": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.69516
+  },
+  "vit_combined_a4_w4": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.7271
+  },
+  "vit_combined_a4_w6": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.73204
+  },
+  "vit_combined_a4_w8": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.73396
+  },
+  "vit_combined_a6_w4": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80214
+  },
+  "vit_combined_a6_w6": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80256
+  },
+  "vit_combined_a6_w8": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80368
+  },
+  "vit_combined_a8_w4": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80144
+  },
+  "vit_combined_a8_w6": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80304
+  },
+  "vit_combined_a8_w8": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80318
+  },
+  "vit_intermediate_mse_2bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.00906
+  },
+  "vit_intermediate_mse_3bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.41092
+  },
+  "vit_intermediate_mse_4bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.55794
+  },
+  "vit_intermediate_mse_6bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80268
+  },
+  "vit_intermediate_mse_8bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80298
   },
   "vit_moq_2bit": {
     "ppl": null,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": 0.07246
   },
   "vit_moq_3bit": {
     "ppl": null,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": 0.6934
   },
   "vit_moq_4bit": {
     "ppl": null,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": 0.73458
   },
   "vit_moq_6bit": {
     "ppl": null,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": 0.8031
   },
   "vit_moq_8bit": {
     "ppl": null,
     "hellaswag": null,
-    "piqa": null
+    "piqa": null,
+    "imagenet": 0.80284
+  },
+  "vit_wt_e2e_4bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.8019
+  },
+  "vit_wt_e2e_6bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80296
+  },
+  "vit_wt_e2e_8bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80308
+  },
+  "vit_wt_imse_4bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.8018
+  },
+  "vit_wt_imse_6bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.80224
+  },
+  "vit_wt_imse_8bit": {
+    "ppl": null,
+    "hellaswag": null,
+    "piqa": null,
+    "imagenet": 0.8031
   }
 }

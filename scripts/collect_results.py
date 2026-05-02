@@ -34,65 +34,64 @@ def main():
         return
 
     # ── Table 1: All results ────────────────────────────────────────
-    print("=" * 100)
+    print("=" * 115)
     print("MoQ Experiment Results Summary")
-    print("=" * 100)
-    print(f"{'Experiment':<45s} {'PPL':>10s} {'HellaSwag':>10s} {'PIQA':>10s}")
-    print("-" * 100)
+    print("=" * 115)
+    print(f"{'Experiment':<45s} {'PPL':>10s} {'HellaSwag':>10s} {'PIQA':>10s} {'ImageNet':>10s}")
+    print("-" * 115)
 
     # FP baseline (from first result that has it)
-    fp_ppl, fp_hella, fp_piqa = None, None, None
+    fp_ppl, fp_hella, fp_piqa, fp_img = None, None, None, None
     for data in all_results.values():
         if "full_precision" in data:
             fp = data["full_precision"]
-            fp_ppl = fp.get("ppl_wikitext2")
+            if fp_ppl is None:
+                fp_ppl = fp.get("ppl_wikitext2")
             zs = fp.get("zero_shot", {})
-            fp_hella = zs.get("hellaswag")
-            fp_piqa = zs.get("piqa")
-            if fp_ppl:
-                break
+            if fp_hella is None:
+                fp_hella = zs.get("hellaswag")
+            if fp_piqa is None:
+                fp_piqa = zs.get("piqa")
+            if fp_img is None:
+                fp_img = fp.get("acc_imagenet")
 
-    if fp_ppl:
-        print(f"{'FP32 (baseline)':<45s} {fp_ppl:>10.2f} {fp_hella:>10.4f} {fp_piqa:>10.4f}")
-        print("-" * 100)
+    if any(x is not None for x in [fp_ppl, fp_hella, fp_piqa, fp_img]):
+        p = f"{fp_ppl:>10.2f}" if fp_ppl is not None else f"{float('nan'):>10.2f}"
+        h = f"{fp_hella:>10.4f}" if fp_hella is not None else f"{float('nan'):>10.4f}"
+        q = f"{fp_piqa:>10.4f}" if fp_piqa is not None else f"{float('nan'):>10.4f}"
+        i = f"{fp_img:>10.4f}" if fp_img is not None else f"{float('nan'):>10.4f}"
+        print(f"{'FP32 (baseline)':<45s} {p} {h} {q} {i}")
+        print("-" * 115)
+
+    def print_group(group_dict):
+        for name, data in sorted(group_dict.items()):
+            q = data.get("quantized", {})
+            ppl = q.get("ppl_wikitext2", float("nan"))
+            zs = q.get("zero_shot", {})
+            hella = zs.get("hellaswag", float("nan"))
+            piqa = zs.get("piqa", float("nan"))
+            img = q.get("acc_imagenet", float("nan"))
+            print(f"  {name:<43s} {ppl:>10.2f} {hella:>10.4f} {piqa:>10.4f} {img:>10.4f}")
 
     # Group: existing activation-only results
     act_only = {k: v for k, v in all_results.items() if "_wt_" not in k and "combined" not in k}
     if act_only:
         print("\n  --- Activation-Only Results ---")
-        for name, data in sorted(act_only.items()):
-            q = data.get("quantized", {})
-            ppl = q.get("ppl_wikitext2", float("nan"))
-            zs = q.get("zero_shot", {})
-            hella = zs.get("hellaswag", float("nan"))
-            piqa = zs.get("piqa", float("nan"))
-            print(f"  {name:<43s} {ppl:>10.2f} {hella:>10.4f} {piqa:>10.4f}")
+        print_group(act_only)
 
     # Group: weight-only results
     wt_only = {k: v for k, v in all_results.items() if "_wt_" in k}
     if wt_only:
         print("\n  --- Weight-Only Results ---")
-        for name, data in sorted(wt_only.items()):
-            q = data.get("quantized", {})
-            ppl = q.get("ppl_wikitext2", float("nan"))
-            zs = q.get("zero_shot", {})
-            hella = zs.get("hellaswag", float("nan"))
-            piqa = zs.get("piqa", float("nan"))
-            print(f"  {name:<43s} {ppl:>10.2f} {hella:>10.4f} {piqa:>10.4f}")
+        print_group(wt_only)
 
     # Group: combined results
     combined = {k: v for k, v in all_results.items() if "combined" in k}
     if combined:
         print("\n  --- Combined (Activation + Weight) Results ---")
-        for name, data in sorted(combined.items()):
-            q = data.get("quantized", {})
-            ppl = q.get("ppl_wikitext2", float("nan"))
-            zs = q.get("zero_shot", {})
-            hella = zs.get("hellaswag", float("nan"))
-            piqa = zs.get("piqa", float("nan"))
-            print(f"  {name:<43s} {ppl:>10.2f} {hella:>10.4f} {piqa:>10.4f}")
+        print_group(combined)
 
-    print("\n" + "=" * 100)
+    print("\n" + "=" * 115)
 
     # ── Save as JSON ────────────────────────────────────────────────
     summary_path = results_dir / "summary.json"
@@ -103,6 +102,7 @@ def main():
             "ppl": q.get("ppl_wikitext2"),
             "hellaswag": q.get("zero_shot", {}).get("hellaswag"),
             "piqa": q.get("zero_shot", {}).get("piqa"),
+            "imagenet": q.get("acc_imagenet"),
         }
     with open(summary_path, "w") as f:
         json.dump(summary, f, indent=2)

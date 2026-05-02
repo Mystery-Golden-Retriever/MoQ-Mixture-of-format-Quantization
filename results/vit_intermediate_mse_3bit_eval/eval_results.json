@@ -1,0 +1,6 @@
+{
+  "quantized": {
+    "acc_imagenet": 0.41092
+  },
+  "full_precision": {}
+}
