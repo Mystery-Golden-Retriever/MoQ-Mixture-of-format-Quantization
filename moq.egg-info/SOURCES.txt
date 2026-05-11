@@ -11,6 +11,7 @@ moq/baselines/baseline_evaluator.py
 moq/calibration/__init__.py
 moq/calibration/moq_calibrator.py
 moq/calibration/search_strategies.py
+moq/calibration/weight_calibrator.py
 moq/evaluation/__init__.py
 moq/evaluation/image_evaluator.py
 moq/evaluation/ohr_evaluator.py
@@ -23,6 +24,9 @@ moq/quantizers/aciq.py
 moq/quantizers/base.py
 moq/quantizers/fp_quantizer.py
 moq/quantizers/int_quantizer.py
+moq/quantizers/mxfp_quantizer.py
+moq/quantizers/nf_quantizer.py
+moq/quantizers/nvfp4_quantizer.py
 moq/quantizers/registry.py
 moq/transform/__init__.py
 moq/transform/hook_injector.py
