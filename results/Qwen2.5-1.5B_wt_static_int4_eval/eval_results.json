@@ -1,6 +1,10 @@
 {
   "quantized": {
-    "ppl_wikitext2": 10087410.0
+    "ppl_wikitext2": 10087410.0,
+    "zero_shot": {
+      "hellaswag": 0.255327623979287,
+      "piqa": 0.5266594124047879
+    }
   },
   "full_precision": {}
 }

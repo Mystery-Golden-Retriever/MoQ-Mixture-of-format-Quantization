@@ -97,7 +97,7 @@ def main():
     parser.add_argument("--weight-format-map", type=str, default=None,
                         help="Path to weight_format_map.json from calibration")
     parser.add_argument("--ppl-dataset", type=str, nargs="*",
-                        default=["wikitext2"],
+                        default=None,
                         help="PPL datasets (wikitext2, c4, ptb)")
     parser.add_argument("--ppl-seq-len", type=int, default=2048)
     parser.add_argument("--image-dataset", type=str, nargs="*",
@@ -244,6 +244,29 @@ def main():
 
     # -- Save results --
     results_path = output_dir / "eval_results.json"
+    
+    # Merge with existing results if file exists
+    if results_path.exists():
+        logger.info("Existing results found at %s. Merging...", results_path)
+        with open(results_path, "r") as f:
+            try:
+                existing_results = json.load(f)
+            except json.JSONDecodeError:
+                existing_results = {"quantized": {}, "full_precision": {}}
+        
+        # Merge quantized and full_precision dicts
+        for mode in ["quantized", "full_precision"]:
+            if mode not in existing_results:
+                existing_results[mode] = {}
+            if mode in results:
+                for k, v in results[mode].items():
+                    if isinstance(v, dict) and isinstance(existing_results[mode].get(k), dict):
+                        # Merge nested dicts (like zero_shot)
+                        existing_results[mode][k].update(v)
+                    else:
+                        existing_results[mode][k] = v
+        results = existing_results
+    
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     logger.info("Results saved to %s", results_path)

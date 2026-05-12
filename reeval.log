@@ -1,0 +1,6 @@
+Starting zero-shot re-evaluation for missing models...
+Evaluating zero-shot for results/Qwen2.5-1.5B_wt_imse_4bit_eval
+Traceback (most recent call last):
+  File "/Users/wanghaonan/Projects/MoQ-Mixture-of-format-Quantization/scripts/run_evaluation.py", line 26, in <module>
+    import torch
+ModuleNotFoundError: No module named 'torch'
